@@ -3,10 +3,7 @@ package com.jono.transactionlab.controller;
 import com.jono.transactionlab.execption.PaymentFailedException;
 import com.jono.transactionlab.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -19,15 +16,63 @@ public class AccountController {
     private final AccountService accountService;
     private final OrderService orderService;
     private final StockService stockService;
+    private final IsolationTestService isolationTestService;
+    private final ConcurrencyService concurrencyService;
 
     public AccountController(
             InventoryService inventoryService, ExternalService externalService, AccountService accountService,
-            OrderService orderService, StockService stockService) {
+            OrderService orderService, StockService stockService, IsolationTestService isolationTestService, ConcurrencyService concurrencyService) {
         this.inventoryService = inventoryService;
         this.externalService = externalService;
         this.accountService = accountService;
         this.orderService = orderService;
         this.stockService = stockService;
+        this.isolationTestService = isolationTestService;
+        this.concurrencyService = concurrencyService;
+    }
+
+    @GetMapping("/isolation/read-committed/{id}")
+    public String readCommitted(
+            @PathVariable Long id) {
+
+        isolationTestService.readCommittedTest(id);
+
+        return "Read committed test completed";
+    }
+
+    @PutMapping("/isolation/update/{id}/{balance}")
+    public String updateBalance(
+            @PathVariable Long id,
+            @PathVariable BigDecimal balance) {
+
+        isolationTestService.updateBalance(id, balance);
+
+        return "Balance updated";
+    }
+
+    @PostMapping("/concurrency/a")
+    public String transactionA() {
+
+        isolationTestService.transactionA();
+
+        return "Transaction A completed";
+    }
+    @PostMapping("/concurrency/b")
+    public String transactionB() {
+
+        isolationTestService.transactionB();
+
+        return "Transaction B completed";
+    }
+
+
+    @PostMapping("/products/{id}/order")
+    public String orderPizza(
+            @PathVariable Long id) {
+
+        concurrencyService.orderPizza(id);
+
+        return "Order completed";
     }
 
     @PostMapping("/test-required")
