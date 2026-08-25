@@ -18,10 +18,11 @@ public class AccountController {
     private final StockService stockService;
     private final IsolationTestService isolationTestService;
     private final ConcurrencyService concurrencyService;
+    private final WithdrawalService withdrawalService;
 
     public AccountController(
             InventoryService inventoryService, ExternalService externalService, AccountService accountService,
-            OrderService orderService, StockService stockService, IsolationTestService isolationTestService, ConcurrencyService concurrencyService) {
+            OrderService orderService, StockService stockService, IsolationTestService isolationTestService, ConcurrencyService concurrencyService, WithdrawalService withdrawalService) {
         this.inventoryService = inventoryService;
         this.externalService = externalService;
         this.accountService = accountService;
@@ -29,6 +30,7 @@ public class AccountController {
         this.stockService = stockService;
         this.isolationTestService = isolationTestService;
         this.concurrencyService = concurrencyService;
+        this.withdrawalService = withdrawalService;
     }
 
     @GetMapping("/isolation/read-committed/{id}")
@@ -114,6 +116,20 @@ public class AccountController {
 
         return "NEVER completed";
     }
+
+
+    @PostMapping(
+            "/{id}/withdraw/{amount}"
+    )
+    public String withdraw(
+            @PathVariable Long id,
+            @PathVariable BigDecimal amount) {
+
+        withdrawalService.withdraw(id, amount);
+
+        return "Withdrawal completed";
+    }
+
 
 
     // 1. Successful Transaction
