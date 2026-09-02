@@ -16,6 +16,13 @@ public class Account {
 
     private BigDecimal balance;
 
+    @Version
+    private Long version;
+
+    public Long getVersion() {
+        return version;
+    }
+
     public Account() {
     }
 

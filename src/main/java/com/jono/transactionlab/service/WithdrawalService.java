@@ -26,7 +26,9 @@ public class WithdrawalService {
                         + Thread.currentThread().getName()
         );
 
-       Account account = accountRepository.findByIdForUpdate(accountId).orElseThrow();
+       // Use for optimistic locking => Account account = accountRepository.findByIdForUpdate(accountId).orElseThrow();
+       //for pesimistic locking
+        Account account = accountRepository.findById(accountId).orElseThrow();
         System.out.println(
                 "Balance READ = "
                         + account.getBalance()

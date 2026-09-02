@@ -1,11 +1,13 @@
 package com.jono.transactionlab.service;
 
+import com.jono.transactionlab.dto.AccountSummaryDTO;
 import com.jono.transactionlab.entity.Account;
 import com.jono.transactionlab.execption.PaymentFailedException;
 import com.jono.transactionlab.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class AccountService {
@@ -91,6 +93,46 @@ public class AccountService {
         // toAccount.setBalance(
         //         toAccount.getBalance().add(amount)
         // );
+    }
+
+    public List<Account> findAccountsWithBalanceGreaterThan(
+            BigDecimal amount) {
+
+        return accountRepository
+                .findAccountsWithBalanceGreaterThan(amount);
+    }
+
+
+    public List<Account> findSearchByAccountHolderName(String name){
+        return accountRepository.searchByAccountHolderName(name);
+    }
+
+    public List<Account> findAccountsByIds(List<Long> ids) {
+        return accountRepository.findAccountsByIds(ids);
+    }
+
+    public long countAccountsWithBalanceGreaterThan(BigDecimal amount) {
+        return accountRepository.countAccountsWithBalanceGreaterThan(amount);
+    }
+
+    public BigDecimal getTotalBalance() {
+        return accountRepository.getTotalBalance();
+    }
+
+    public Double getAverageBalance() {
+        return accountRepository.getAverageBalance();
+    }
+
+    public List<Object[]> countAccountsByHolderName() {
+        return accountRepository.countAccountsByHolderName();
+    }
+
+    public List<Object[]> findHoldersWithMultipleAccounts() {
+        return accountRepository.findHoldersWithMultipleAccounts();
+    }
+
+    public List<AccountSummaryDTO> findAccountSummaries(BigDecimal amount) {
+        return accountRepository.findAccountSummaries(amount);
     }
 
 

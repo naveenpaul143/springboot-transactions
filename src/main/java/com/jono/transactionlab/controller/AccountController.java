@@ -1,11 +1,13 @@
 package com.jono.transactionlab.controller;
 
+import com.jono.transactionlab.dto.AccountSummaryDTO;
+import com.jono.transactionlab.entity.Account;
 import com.jono.transactionlab.execption.PaymentFailedException;
 import com.jono.transactionlab.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
@@ -19,10 +21,12 @@ public class AccountController {
     private final IsolationTestService isolationTestService;
     private final ConcurrencyService concurrencyService;
     private final WithdrawalService withdrawalService;
+    private final DeadlockService deadlockService;
+    private final OptimisticRetryService optimisticRetryService;
 
     public AccountController(
             InventoryService inventoryService, ExternalService externalService, AccountService accountService,
-            OrderService orderService, StockService stockService, IsolationTestService isolationTestService, ConcurrencyService concurrencyService, WithdrawalService withdrawalService) {
+            OrderService orderService, StockService stockService, IsolationTestService isolationTestService, ConcurrencyService concurrencyService, WithdrawalService withdrawalService, DeadlockService deadlockService, OptimisticRetryService optimisticRetryService) {
         this.inventoryService = inventoryService;
         this.externalService = externalService;
         this.accountService = accountService;
@@ -31,6 +35,8 @@ public class AccountController {
         this.isolationTestService = isolationTestService;
         this.concurrencyService = concurrencyService;
         this.withdrawalService = withdrawalService;
+        this.deadlockService = deadlockService;
+        this.optimisticRetryService = optimisticRetryService;
     }
 
     @GetMapping("/isolation/read-committed/{id}")
@@ -130,6 +136,32 @@ public class AccountController {
         return "Withdrawal completed";
     }
 
+    @PostMapping("/deadlock/transfer-1-to-2")
+    public String transferOneToTwo() throws InterruptedException {
+
+        deadlockService.transferOneToTwo();
+
+        return "Transfer 1 → 2 completed";
+    }
+
+    @PostMapping("/deadlock/transfer-2-to-1")
+    public String transferTwoToOne() {
+
+        deadlockService.transferTwoToOne();
+
+        return "Transfer 2 → 1 completed";
+    }
+
+
+    @PostMapping("/retry-test/{id}/{amount}")
+    public String retryTest(
+            @PathVariable Long id,
+            @PathVariable double amount
+    ){
+
+        optimisticRetryService.updateBalance(id,BigDecimal.valueOf(amount));
+        return "Updated";
+    }
 
 
     // 1. Successful Transaction
@@ -175,5 +207,58 @@ public class AccountController {
         );
 
         return "This should never execute";
+    }
+
+
+    @GetMapping("/balance-greater/{amount}")
+    public List<Account> balanceGreater(
+            @PathVariable BigDecimal amount) {
+
+        return accountService
+                .findAccountsWithBalanceGreaterThan(amount);
+    }
+
+    @GetMapping("/account-match/{name}")
+    public List<Account> accountMatch(@PathVariable String name){
+        return accountService.findSearchByAccountHolderName(name);
+
+    }
+
+    @GetMapping("/by-ids")
+    public List<Account> findByIds(
+            @RequestParam List<Long> ids) {
+
+        return accountService.findAccountsByIds(ids);
+    }
+
+    @GetMapping("/count-balance-greater/{amount}")
+    public long countBalanceGreater(
+            @PathVariable BigDecimal amount) {
+
+        return accountService.countAccountsWithBalanceGreaterThan(amount);
+    }
+    @GetMapping("/total-balance")
+    public BigDecimal totalBalance() {
+        return accountService.getTotalBalance();
+    }
+    @GetMapping("/average-balance")
+    public Double averageBalance() {
+        return accountService.getAverageBalance();
+    }
+
+    @GetMapping("/group-by-holder")
+    public List<Object[]> groupByHolder() {
+        return accountService.countAccountsByHolderName();
+    }
+
+    @GetMapping("/holders/multiple")
+    public List<Object[]> findMultipleAccountHolders() {
+        return accountService.findHoldersWithMultipleAccounts();
+    }
+    @GetMapping("/summary/{amount}")
+    public List<AccountSummaryDTO> accountSummary(
+            @PathVariable BigDecimal amount) {
+
+        return accountService.findAccountSummaries(amount);
     }
 }
